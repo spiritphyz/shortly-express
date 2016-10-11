@@ -2,6 +2,7 @@ var express = require('express');
 var util = require('./lib/utility');
 var partials = require('express-partials');
 var bodyParser = require('body-parser');
+var session = require('express-session');
 
 
 var db = require('./app/config');
@@ -22,10 +23,28 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/public'));
 
+app.use(session({
+  secret: 'measure for measure',
+  resave: false,
+  saveUninitialized: true
+}));
+
 
 app.get('/', 
 function(req, res) {
-  res.render('index');
+  if (session.username) {
+    res.render('index');
+  } else {
+    // redirect to login
+    // res.render('login');
+    res.redirect('/login');
+  }
+});
+
+app.get('/login',
+function(req, res) {
+  console.log('reached login page');
+  res.render('login');
 });
 
 app.get('/create', 
@@ -56,7 +75,7 @@ function(req, res) {
         if (err) {
           console.log('Error reading URL heading: ', err);
           res.sendStatus(404);
-        }
+        } //test
 
         Links.create({
           url: uri,
