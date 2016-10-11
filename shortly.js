@@ -29,31 +29,33 @@ app.use(session({
   saveUninitialized: true
 }));
 
-
-app.get('/', 
-function(req, res) {
-  if (session.username) {
-    res.render('index');
-  } else {
-    // redirect to login
-    // res.render('login');
+var checkUser = function(req, res, next) {
+  if (!req.session.user) {
     res.redirect('/login');
+  } else {
+    next();
   }
+};
+
+app.get('/', checkUser, function(req, res) {
+  res.render('index');
 });
 
 app.get('/login',
 function(req, res) {
-  console.log('reached login page');
   res.render('login');
 });
 
-app.get('/create', 
+app.get('/signup',
 function(req, res) {
+  res.render('signup');
+});
+
+app.get('/create', checkUser, function(req, res) {
   res.render('index');
 });
 
-app.get('/links', 
-function(req, res) {
+app.get('/links', checkUser, function(req, res) {
   Links.reset().fetch().then(function(links) {
     res.status(200).send(links.models);
   });
@@ -85,6 +87,51 @@ function(req, res) {
         .then(function(newLink) {
           res.status(200).send(newLink);
         });
+      });
+    }
+  });
+});
+
+app.post('/signup', 
+function(req, res) {
+  new User({ username: req.body.username, password: req.body.password }).fetch().then(function(found) {
+    if (found) {
+      console.log('🍊 found attributes in database', found.attributes);
+      res.status(200).send(found.attributes);
+    } else {
+      Users.create({
+        username: req.body.username,
+        password: req.body.password
+      })
+      .then(function(newUser) {
+        req.session.user = req.body.username;
+        res.status(201);
+        res.redirect('/');
+      });
+    }
+  });
+});
+
+app.post('/login', 
+function(req, res) {
+  new User({ username: req.body.username, password: req.body.password }).fetch().then(function(found) {
+    if (found) {
+      //send 200, set session.user, and redirect to '/'
+
+      console.log('🍊 found attributes in database', found.attributes);
+      res.status(200).send(found.attributes);
+    } else {
+
+      //send user to signup page?
+
+      Users.create({
+        username: req.body.username,
+        password: req.body.password
+      })
+      .then(function(newUser) {
+        req.session.user = req.body.username;
+        res.status(201);
+        res.redirect('/');
       });
     }
   });
