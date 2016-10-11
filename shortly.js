@@ -45,8 +45,7 @@ function(req, res) {
   var uri = req.body.url;
 
   if (!util.isValidUrl(uri)) {
-    console.log('Not a valid url: ', uri);
-    return res.sendStatus(404);
+    res.sendStatus(404);
   }
 
   new Link({ url: uri }).fetch().then(function(found) {
@@ -56,7 +55,7 @@ function(req, res) {
       util.getUrlTitle(uri, function(err, title) {
         if (err) {
           console.log('Error reading URL heading: ', err);
-          return res.sendStatus(404);
+          res.sendStatus(404);
         }
 
         Links.create({
