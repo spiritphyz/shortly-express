@@ -116,25 +116,22 @@ app.post('/login',
 function(req, res) {
   new User({ username: req.body.username, password: req.body.password }).fetch().then(function(found) {
     if (found) {
-      //send 200, set session.user, and redirect to '/'
-
-      console.log('🍊 found attributes in database', found.attributes);
-      res.status(200).send(found.attributes);
+      req.session.user = req.body.username;
+      res.status(200);
+      res.redirect('/');
     } else {
-
-      //send user to signup page?
-
-      Users.create({
-        username: req.body.username,
-        password: req.body.password
-      })
-      .then(function(newUser) {
-        req.session.user = req.body.username;
-        res.status(201);
-        res.redirect('/');
-      });
+      res.redirect('/login');
     }
   });
+});
+
+app.get('/logout', 
+function(req, res) {
+  req.session.destroy(function(err) {
+    res.redirect('/');
+  });
+  // res.status(200);
+  // res.redirect('/');
 });
 
 /************************************************************/
